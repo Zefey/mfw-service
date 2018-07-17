@@ -1,0 +1,9 @@
+{
+    "dbhost": "localhost",
+    "port": "3306",
+    "db": "blog",
+    "user": "root",
+    "password": "liuzefeng",
+    "charset": "utf8",
+    "maxConnLimit": "100"
+}
