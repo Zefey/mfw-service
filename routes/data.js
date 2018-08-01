@@ -33,7 +33,7 @@ router.post('/write', function(req, res, next) {
   if(!title || !url || !img){
     return res.send({
         status:0,
-        info:'缺少数据'
+        info:'缺少参数'
     });
   }
 

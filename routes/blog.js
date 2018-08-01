@@ -5,14 +5,68 @@ var DateUtil = require('../util/dateUtil');
 
 
 router.get('/', function(req, res, next) {
-    var start = req.param('start') || 0;
-    var offset = req.param('offset') || 5;
-    start = parseInt(start);
-    offset = parseInt(offset);
+    var pages = 0;
+    var pageNum = parseInt(req.param('pageNum') || 1);
+    var prePage = pageNum-1;
+    var nextPage = pageNum+1;
+    var hasPreviousPage = pageNum!=1;
+    var hasNextPage = pageNum!=pages;
+
+    var offset = 8;
+    var start = (pageNum-1)*offset;
     var keyWord = req.param('keyWord')?'%'+req.param('keyWord')+'%':'%%';
     var options = {
-        sql: 'select id,title,content,author,create_time,update_time from blog where title like ? or content like ? order by id desc limit ?,?',
+        sql:    'SELECT b.id,b.title,b.content,b.create_time AS time,c.name AS category,group_concat(l.name) AS label '+
+                'FROM relation AS r '+
+                'LEFT JOIN blog AS b ON b.id = r.blog_id '+
+                'LEFT JOIN category AS c ON c.id = r.category_id '+
+                'LEFT JOIN label AS l ON l.id = r.label_id '+
+                'WHERE b.title LIKE ? OR b.content LIKE ? '+
+                'GROUP BY b.id '+
+                'ORDER BY b.id DESC '+
+                'LIMIT ?,?',
         args:[keyWord,keyWord,start,offset]
+    }
+
+    var count = {
+        sql:'SELECT count(*) FROM blog AS b WHERE b.title LIKE ? OR b.content LIKE ?',
+        args:[keyWord,keyWord]
+    }
+    DBHelper.execQuery(count, function(results) {
+        pages = Math.ceil(parseInt(results[0]['count(*)'])/offset);
+        hasNextPage = pageNum!=pages;
+    });
+
+    DBHelper.execQuery(options, function(results) {
+        return res.send({
+            status: 1,
+            pages:pages,
+            pageNum:pageNum,
+            prePage:prePage,
+            nextPage:nextPage,
+            hasPreviousPage:hasPreviousPage,
+            hasNextPage:hasNextPage,
+            data: results
+
+        });
+
+    });
+});
+
+
+router.get('/detail', function(req, res, next) {
+    var id = req.param('id') || '';
+
+    if(!id){
+        return res.send({
+            status: 0,
+            info: '缺少参数'
+        });
+    }
+
+    var options = {
+        sql: 'select id,title,content,author,create_time,update_time from blog where id =?',
+        args:id
     }
 
     DBHelper.execQuery(options, function(results) {
@@ -24,26 +78,7 @@ router.get('/', function(req, res, next) {
 
     });
 });
-router.post('/', function(req, res, next) {
-    var start = req.param('start') || 0;
-    var offset = req.param('offset') || 5;
-    start = parseInt(start);
-    offset = parseInt(offset);
-    var keyWord = req.param('keyWord')?'%'+req.param('keyWord')+'%':'%%';
-    var options = {
-        sql: 'select id,title,content,author,create_time,update_time from blog where title like ? or content like ? order by id desc limit ?,?',
-        args:[keyWord,keyWord,start,offset]
-    }
 
-    DBHelper.execQuery(options, function(results) {
-        return res.send({
-            status: 1,
-            data: results
-
-        });
-
-    });
-});
 
 router.post('/add', function(req, res, next) {
     var sess = req.session;
@@ -62,7 +97,7 @@ router.post('/add', function(req, res, next) {
     if(!title || !content){
         return res.send({
             status: 0,
-            info: '缺少数据'
+            info: '缺少参数'
         });
     }
     var options = {
@@ -83,9 +118,9 @@ router.post('/add', function(req, res, next) {
 });
 
 
-router.post('/update/:id', function(req, res, next) {
+router.post('/update', function(req, res, next) {
     var sess = req.session;
-    var id = req.params.id;
+    var id = req.param('id') || '';
     var title = req.param('title') || '';
     var content = req.param('content') || '';
     var update_time = new Date();
@@ -99,7 +134,7 @@ router.post('/update/:id', function(req, res, next) {
     // if(!title || !content){
     //     return res.send({
     //         status: 0,
-    //         info: '缺少数据'
+    //         info: '缺少参数'
     //     });
     // }
 
@@ -118,15 +153,22 @@ router.post('/update/:id', function(req, res, next) {
     });
 });
 
-router.post('/delete/:id', function(req, res, next) {
+router.post('/delete', function(req, res, next) {
     var sess = req.session;
-    var id = req.params.id;
+    var id = req.param('id') || '';
 
     var author = sess.user?sess.user.username:'';
     if(!author){
       return res.send({
             status: 0,
             info: '未登录'
+        });
+    }
+
+    if(!id){
+        return res.send({
+            status: 0,
+            info: '缺少参数'
         });
     }
 
@@ -144,12 +186,10 @@ router.post('/delete/:id', function(req, res, next) {
     });
 });
 
-router.get('/:id', function(req, res, next) {
-    var id = req.params.id;
+router.get('/rank', function(req, res, next) {
 
     var options = {
-        sql: 'select id,title,content,author,create_time,update_time from blog where id =?',
-        args:id
+        sql: 'select id,title from blog as b order by b.id desc limit 0,6'
     }
 
     DBHelper.execQuery(options, function(results) {
@@ -161,12 +201,28 @@ router.get('/:id', function(req, res, next) {
 
     });
 });
-router.post('/:id', function(req, res, next) {
-    var id = req.params.id;
+
+router.get('/category', function(req, res, next) {
 
     var options = {
-        sql: 'select id,title,content,author,create_time,update_time from blog where id =?',
-        args:id
+        sql: 'select id,name from category'
+    }
+
+    DBHelper.execQuery(options, function(results) {
+        return res.send({
+            status: 1,
+            data: results
+
+        });
+
+    });
+});
+
+
+router.get('/label', function(req, res, next) {
+
+    var options = {
+        sql: 'select id,name from label'
     }
 
     DBHelper.execQuery(options, function(results) {
