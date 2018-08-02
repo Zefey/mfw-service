@@ -15,25 +15,35 @@ router.get('/', function(req, res, next) {
     var offset = 8;
     var start = (pageNum-1)*offset;
     var keyWord = req.param('keyWord')?'%'+req.param('keyWord')+'%':'%%';
+    var categoryId = req.param('categoryId')?'%'+req.param('categoryId')+'%':'%%';
+    var labelId = req.param('labelId')?'%'+req.param('labelId')+'%':'%%';
+
     var options = {
-        sql:    'SELECT b.id,b.title,b.content,b.create_time AS time,c.name AS category,group_concat(l.name) AS label '+
-                'FROM relation AS r '+
-                'LEFT JOIN blog AS b ON b.id = r.blog_id '+
-                'LEFT JOIN category AS c ON c.id = r.category_id '+
-                'LEFT JOIN label AS l ON l.id = r.label_id '+
-                'WHERE b.title LIKE ? OR b.content LIKE ? '+
-                'GROUP BY b.id '+
-                'ORDER BY b.id DESC '+
-                'LIMIT ?,?',
-        args:[keyWord,keyWord,start,offset]
+        sql:'SELECT b.id,b.title,b.content,DATE_FORMAT(b.create_time,"%Y-%m-%d") AS time,c.name AS category,group_concat(l.name) AS label '+
+            'FROM relation AS r '+
+            'LEFT JOIN blog AS b ON b.id = r.blog_id '+
+            'LEFT JOIN category AS c ON c.id = r.category_id '+
+            'LEFT JOIN label AS l ON l.id = r.label_id '+
+            'WHERE (b.title LIKE ? OR b.content LIKE ?) AND c.id LIKE ? AND l.id LIKE ? '+
+            'GROUP BY b.id '+
+            'ORDER BY b.id DESC '+
+            'LIMIT ?,?',
+        args:[keyWord,keyWord,categoryId,labelId,start,offset]
     }
 
     var count = {
-        sql:'SELECT count(*) FROM blog AS b WHERE b.title LIKE ? OR b.content LIKE ?',
-        args:[keyWord,keyWord]
+        sql:'SELECT COUNT(*) '+
+            'FROM '+
+            'relation AS r '+
+            'LEFT JOIN blog AS b ON b.id = r.blog_id '+
+            'LEFT JOIN category AS c ON c.id = r.category_id '+
+            'LEFT JOIN label AS l ON l.id = r.label_id '+
+            'WHERE (b.title LIKE ? OR b.content LIKE ?) AND c.id LIKE ? AND l.id LIKE ? '+
+            'GROUP BY b.id',
+        args:[keyWord,keyWord,categoryId,labelId]
     }
     DBHelper.execQuery(count, function(results) {
-        pages = Math.ceil(parseInt(results[0]['count(*)'])/offset);
+        pages = Math.ceil(parseInt(results.length)/offset);
         hasNextPage = pageNum!=pages;
     });
 
@@ -65,8 +75,14 @@ router.get('/detail', function(req, res, next) {
     }
 
     var options = {
-        sql: 'select id,title,content,author,create_time,update_time from blog where id =?',
-        args:id
+        sql:    'SELECT b.id,b.title,b.content,DATE_FORMAT(b.update_time,"%Y-%m-%d") AS time,c.name AS category,group_concat(l.name) AS label '+
+                'FROM relation AS r '+
+                'LEFT JOIN blog AS b ON b.id = r.blog_id '+
+                'LEFT JOIN category AS c ON c.id = r.category_id '+
+                'LEFT JOIN label AS l ON l.id = r.label_id '+
+                'WHERE b.id = ? '+
+                'GROUP BY b.id',
+        args:[id]
     }
 
     DBHelper.execQuery(options, function(results) {
