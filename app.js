@@ -10,7 +10,6 @@ var index = require('./routes/index');
 var user = require('./routes/user');
 var file = require('./routes/file');
 var blog = require('./routes/blog');
-var img = require('./img/index');
 
 var app = express();
 
@@ -19,8 +18,8 @@ app.all('*', function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
     res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
-    res.header("X-Powered-By",' 3.2.1')
-    res.header("Content-Type", "application/json;charset=utf-8");
+    // res.header("X-Powered-By",' 3.2.1')
+    // res.header("Content-Type", "application/json;charset=utf-8");
     next();
 });
 
@@ -44,11 +43,9 @@ app.use(session({
 }));
 
 app.use('/', index);
-// app.use('/data',data);
 app.use('/user', user);
 app.use('/blog', blog);
 app.use('/file', file);
-app.use('/img', img);
 
 
 // catch 404 and forward to error handler

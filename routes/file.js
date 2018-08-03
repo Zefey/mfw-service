@@ -31,7 +31,7 @@ router.post('/upload',multipartMiddleware,function(req, res, next) {
         var random = Math.round(Math.random()*10000);
         var timestamp = new Date().getTime();
         var saveName = timestamp + random + suffix;
-        var savePath = './'+PATH + saveName;
+        var savePath = './public/'+PATH + saveName;
         var url = 'http://' + HOST + PATH + saveName;
         resData.push(url);
 
