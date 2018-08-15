@@ -37,7 +37,7 @@ exports.execQuery = function(options,callback) {
             // throw error;
         }
 
-        
+
 
         // 查询参数
         var sql = options['sql'];
@@ -52,7 +52,9 @@ exports.execQuery = function(options,callback) {
                 }
 
                 // 处理结果
-                callback(results);
+                if(typeof callback == 'function'){
+                    callback(results);
+                }
             });
 
             console.log(query.sql);
@@ -64,7 +66,9 @@ exports.execQuery = function(options,callback) {
                 }
 
                 // 处理结果
-                callback(results);
+                if(typeof callback == 'function'){
+                    callback(results);
+                }
             });
 
             console.log(query.sql);

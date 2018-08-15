@@ -12,8 +12,8 @@ router.get('/', function(req, res, next) {
     var hasPreviousPage = pageNum!=1;
     var hasNextPage = pageNum!=pages;
 
-    var offset = 8;
-    var start = (pageNum-1)*offset;
+    var offset = parseInt(req.param('offset') || 8);
+    var start = parseInt(req.param('start') || (pageNum-1)*offset);
     var keyWord = req.param('keyWord')?'%'+req.param('keyWord')+'%':'%%';
     var categoryId = req.param('categoryId')?'%'+req.param('categoryId')+'%':'%%';
     var labelId = req.param('labelId')?'%'+req.param('labelId')+'%':'%%';
@@ -45,22 +45,22 @@ router.get('/', function(req, res, next) {
     DBHelper.execQuery(count, function(results) {
         pages = Math.ceil(parseInt(results.length)/offset);
         hasNextPage = pageNum!=pages;
-    });
 
-    DBHelper.execQuery(options, function(results) {
-        return res.send({
-            status: 1,
-            pages:pages,
-            pageNum:pageNum,
-            prePage:prePage,
-            nextPage:nextPage,
-            hasPreviousPage:hasPreviousPage,
-            hasNextPage:hasNextPage,
-            data: results
-
+        DBHelper.execQuery(options, function(results) {
+            return res.send({
+                status: 1,
+                pages:pages,
+                pageNum:pageNum,
+                prePage:prePage,
+                nextPage:nextPage,
+                hasPreviousPage:hasPreviousPage,
+                hasNextPage:hasNextPage,
+                data: results
+            });
         });
-
     });
+
+
 });
 
 
@@ -101,6 +101,8 @@ router.post('/add', function(req, res, next) {
 
     var title = req.param('title');
     var content = req.param('content');
+    var labelIds = req.param('labelId');
+    var categoryId = req.param('categoryId');
     var create_time = new Date();
     var update_time = new Date();
     var author = sess.user?sess.user.username:'';
@@ -110,7 +112,7 @@ router.post('/add', function(req, res, next) {
             info: '未登录'
         });
     }
-    if(!title || !content){
+    if(!title || !content || !labelIds || !categoryId){
         return res.send({
             status: 0,
             info: '缺少参数'
@@ -122,12 +124,19 @@ router.post('/add', function(req, res, next) {
     }
 
     DBHelper.execQuery(options, function(results) {
-        var data = {id:results.insertId};
+        var blogId = results.insertId;
+        for(var i in labelIds){
+            var labelId = labelIds[i];
+            var options1 = {
+                sql: 'INSERT INTO relation(blog_id,label_id,category_id,create_time,update_time) VALUES(?,?,?,?,?)',
+                args:[blogId,labelId,categoryId,create_time,update_time]
+            }
+            DBHelper.execQuery(options1);
+        }
+
         return res.send({
             status: 1,
-            data:[data],
             info: '新增成功'
-
         });
 
     });
@@ -205,7 +214,7 @@ router.post('/delete', function(req, res, next) {
 router.get('/rank', function(req, res, next) {
 
     var options = {
-        sql: 'select id,title from blog as b order by b.id desc limit 0,6'
+        sql: 'select id,title from blog as b where b.rank<=6 order by b.rank asc'
     }
 
     DBHelper.execQuery(options, function(results) {
@@ -242,6 +251,29 @@ router.get('/label', function(req, res, next) {
     }
 
     DBHelper.execQuery(options, function(results) {
+        return res.send({
+            status: 1,
+            data: results
+
+        });
+
+    });
+});
+
+router.get('/timeline', function(req, res, next) {
+
+    var options = {
+        sql:'SELECT distinct DATE_FORMAT(b.create_time,"%Y-%m") AS time,'+
+            'GROUP_CONCAT(\'{"id":\',CAST(b.id AS CHAR),\',"title":"\',b.title,\'","time":"\',DATE_FORMAT(b.create_time,"%Y-%m-%d"),\'"}\') AS data '+
+            'FROM blog AS b '+
+            'GROUP BY time '+
+            'ORDER BY time DESC'
+    }
+
+    DBHelper.execQuery(options, function(results) {
+        for(var i in results){
+            results[i]['data'] = JSON.parse('['+results[i]['data']+']');
+        }
         return res.send({
             status: 1,
             data: results
