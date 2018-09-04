@@ -194,7 +194,7 @@ router.post('/update', function(req, res, next) {
                 var labelId = labelData[i]['key'];
                 var options1 = {
                     sql: 'INSERT INTO relation(blog_id,label_id,category_id,create_time,update_time) VALUES(?,?,?,?,?)',
-                    args:[blogId,labelId,categoryId,create_time,update_time]
+                    args:[id,labelId,categoryId,create_time,update_time]
                 }
                 DBHelper.execQuery(options1);
             }
