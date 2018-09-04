@@ -19,12 +19,13 @@ router.get('/', function(req, res, next) {
     var labelId = req.param('labelId')?'%'+req.param('labelId')+'%':'%%';
 
     var options = {
-        sql:'SELECT b.id,b.title,b.content,DATE_FORMAT(b.create_time,"%Y-%m-%d") AS time,c.name AS category,group_concat(l.name) AS label '+
+        sql:'SELECT b.id,b.title,b.content,DATE_FORMAT(b.create_time,"%Y-%m-%d") AS time,c.name AS category,c.id AS categoryId,'+
+            'group_concat(\'{"id":\',CAST(l.id AS CHAR),\',"name":"\',l.name,\'"}\') AS label '+
             'FROM relation AS r '+
             'LEFT JOIN blog AS b ON b.id = r.blog_id '+
             'LEFT JOIN category AS c ON c.id = r.category_id '+
             'LEFT JOIN label AS l ON l.id = r.label_id '+
-            'WHERE (b.title LIKE ? OR b.content LIKE ?) AND c.id LIKE ? AND l.id LIKE ? '+
+            'WHERE (b.title LIKE ? OR b.content LIKE ?) AND c.id LIKE ? AND l.id LIKE ? AND b.disabled != 1 '+
             'GROUP BY b.id '+
             'ORDER BY b.id DESC '+
             'LIMIT ?,?',
@@ -38,7 +39,7 @@ router.get('/', function(req, res, next) {
             'LEFT JOIN blog AS b ON b.id = r.blog_id '+
             'LEFT JOIN category AS c ON c.id = r.category_id '+
             'LEFT JOIN label AS l ON l.id = r.label_id '+
-            'WHERE (b.title LIKE ? OR b.content LIKE ?) AND c.id LIKE ? AND l.id LIKE ? '+
+            'WHERE (b.title LIKE ? OR b.content LIKE ?) AND c.id LIKE ? AND l.id LIKE ? AND b.disabled != 1 '+
             'GROUP BY b.id',
         args:[keyWord,keyWord,categoryId,labelId]
     }
@@ -47,6 +48,9 @@ router.get('/', function(req, res, next) {
         hasNextPage = pageNum!=pages;
 
         DBHelper.execQuery(options, function(results) {
+            for(var i in results){
+                results[i]['label'] = JSON.parse('['+results[i]['label']+']');
+            }
             return res.send({
                 status: 1,
                 pages:pages,
@@ -101,8 +105,11 @@ router.post('/add', function(req, res, next) {
 
     var title = req.param('title');
     var content = req.param('content');
-    var labelIds = req.param('labelId');
-    var categoryId = req.param('categoryId');
+    var labelData = req.param('label');
+    var categoryData = req.param('category');
+
+    labelData = labelData?JSON.parse(labelData):'';
+    categoryData = categoryData?JSON.parse(categoryData):'';
     var create_time = new Date();
     var update_time = new Date();
     var author = sess.user?sess.user.username:'';
@@ -112,21 +119,22 @@ router.post('/add', function(req, res, next) {
             info: '未登录'
         });
     }
-    if(!title || !content || !labelIds || !categoryId){
+    if(!title || !content || !labelData || !categoryData){
         return res.send({
             status: 0,
             info: '缺少参数'
         });
     }
     var options = {
-        sql: 'insert into blog(title,content,author,create_time,update_time) values(?,?,?,?,?)',
+        sql: 'insert into blog(title,content,author,create_time,update_time,rank,disabled) values(?,?,?,?,?,0,0)',
         args:[title,content,author,create_time,update_time]
     }
 
     DBHelper.execQuery(options, function(results) {
         var blogId = results.insertId;
-        for(var i in labelIds){
-            var labelId = labelIds[i];
+        var categoryId = categoryData['key'];
+        for(var i in labelData){
+            var labelId = labelData[i]['key'];
             var options1 = {
                 sql: 'INSERT INTO relation(blog_id,label_id,category_id,create_time,update_time) VALUES(?,?,?,?,?)',
                 args:[blogId,labelId,categoryId,create_time,update_time]
@@ -148,6 +156,12 @@ router.post('/update', function(req, res, next) {
     var id = req.param('id') || '';
     var title = req.param('title') || '';
     var content = req.param('content') || '';
+    var labelData = req.param('label');
+    var categoryData = req.param('category');
+
+    labelData = labelData?JSON.parse(labelData):'';
+    categoryData = categoryData?JSON.parse(categoryData):'';
+    var create_time = new Date();
     var update_time = new Date();
     var author = sess.user?sess.user.username:'';
     if(!author){
@@ -156,23 +170,39 @@ router.post('/update', function(req, res, next) {
             info: '未登录'
         });
     }
-    // if(!title || !content){
-    //     return res.send({
-    //         status: 0,
-    //         info: '缺少参数'
-    //     });
-    // }
+    if(!title || !content || !labelData || !categoryData){
+        return res.send({
+            status: 0,
+            info: '缺少参数'
+        });
+    }
 
     var options = {
         sql: 'update blog set title = ?,content = ?,update_time = ? where id =?',
         args:[title,content,update_time,id]
     }
 
-    DBHelper.execQuery(options, function(results) {
-        return res.send({
-            status: 1,
-            info: '修改成功'
+    var options1 = {
+        sql: 'delete from relation where blog_id = ?',
+        args:[id]
+    }
 
+    DBHelper.execQuery(options, function() {
+        DBHelper.execQuery(options1, function() {
+            var categoryId = categoryData['key'];
+            for(var i in labelData){
+                var labelId = labelData[i]['key'];
+                var options1 = {
+                    sql: 'INSERT INTO relation(blog_id,label_id,category_id,create_time,update_time) VALUES(?,?,?,?,?)',
+                    args:[blogId,labelId,categoryId,create_time,update_time]
+                }
+                DBHelper.execQuery(options1);
+            }
+
+            return res.send({
+                status: 1,
+                info: '修改成功'
+            });
         });
 
     });
@@ -198,7 +228,7 @@ router.post('/delete', function(req, res, next) {
     }
 
     var options = {
-        sql: 'delete from blog where id =?',
+        sql: 'update blog set disabled = 1 where id = ?',
         args:id
     }
 
@@ -214,7 +244,7 @@ router.post('/delete', function(req, res, next) {
 router.get('/rank', function(req, res, next) {
 
     var options = {
-        sql: 'select id,title from blog as b where b.rank<=6 order by b.rank asc'
+        sql: 'select id,title from blog as b where b.rank<=6 AND b.rank!=0 order by b.rank asc'
     }
 
     DBHelper.execQuery(options, function(results) {

@@ -5,38 +5,48 @@ var multipart = require('connect-multiparty');
 var DBHelper = require('../util/DBHelper');
 var DateUtil = require('../util/dateUtil');
 
-var PATH = '/img/';
 
 var multipartMiddleware = multipart();
 var router = express.Router();
 
 router.post('/upload',multipartMiddleware,function(req, res, next) {
+    //定义
     var sess = req.session;
-    var imgs = req.files.imgs;
-    var HOST = req.headers.host;
-
+    var file = req.files.file;
+    var HOST = 'http://' + req.headers.host;
+    var LOCAL_HOST = './public/';
+    var PATH = 'file/';
+    var URL_PATH = '/file/';
     var arr = [];
     var resData = [];
 
-    if (typeof imgs === 'object' && !isNaN(imgs.length)) {
-        arr = imgs;
+    //判断是否为多个文件
+    if (typeof file === 'object' && !isNaN(file.length)) {
+        arr = file;
     } else {
-        arr.push(imgs);
+        arr.push(file);
     }
 
     for(var i in arr){
-        var path = arr[i]['path'];
-        var name = arr[i]['name'];
-        var suffix = name.substring(name.indexOf('.'));
-        var random = Math.round(Math.random()*10000);
+        console.log('arr',arr);
+        console.log('arr',JSON.stringify(arr));
+        var filePath = arr[i]['path'];
+        var fileName = arr[i]['name'];
+        // ext. 扩展名
+        var extension = fileName.substring(fileName.indexOf('.'));
+        // 1000-9999 随机数
+        var random = Math.floor(Math.random()*(9999-1000+1)+1000);
+        // 时间戳
         var timestamp = new Date().getTime();
-        var saveName = timestamp + random + suffix;
-        var savePath = './public/'+PATH + saveName;
-        var url = 'http://' + HOST + PATH + saveName;
+
+        var saveName = timestamp + random + extension;
+        var savePath = LOCAL_HOST + PATH + saveName;
+
+        var url = HOST + URL_PATH + saveName;
         resData.push(url);
 
 
-        var data = fs.readFileSync(path);
+        var data = fs.readFileSync(filePath);
         var ret = fs.writeFileSync(savePath, data);
         if(ret){
             return res.send({
@@ -61,22 +71,6 @@ router.post('/upload',multipartMiddleware,function(req, res, next) {
     //         info: '未登录'
     //     });
     // }
-
-    // var options = {
-    //     sql: 'insert into blog(title,content,author,create_time,update_time) values(?,?,?,?,?)',
-    //     args:[title,content,author,create_time,update_time]
-    // }
-    //
-    // DBHelper.execQuery(options, function(results) {
-    //     var data = {id:results.insertId};
-    //     return res.send({
-    //         status: 1,
-    //         data:[data],
-    //         info: '新增成功'
-    //
-    //     });
-    //
-    // });
 });
 
 
