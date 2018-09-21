@@ -14,7 +14,7 @@ router.post('/upload',multipartMiddleware,function(req, res, next) {
     var sess = req.session;
     var file = req.files.file;
     var HOST = 'http://' + req.headers.host;
-    var LOCAL_HOST = '../public';
+    var LOCAL_HOST = './public';
     var PATH = '/file/';
     var arr = [];
     var resData = [];

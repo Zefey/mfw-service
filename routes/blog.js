@@ -84,7 +84,7 @@ router.get('/detail', function(req, res, next) {
                 'LEFT JOIN blog AS b ON b.id = r.blog_id '+
                 'LEFT JOIN category AS c ON c.id = r.category_id '+
                 'LEFT JOIN label AS l ON l.id = r.label_id '+
-                'WHERE b.id = ? '+
+                'WHERE b.id = ? AND b.disabled != 1 '+
                 'GROUP BY b.id',
         args:[id]
     }
@@ -244,7 +244,7 @@ router.post('/delete', function(req, res, next) {
 router.get('/rank', function(req, res, next) {
 
     var options = {
-        sql: 'select id,title from blog as b where b.rank<=6 AND b.rank!=0 order by b.rank asc'
+        sql: 'select id,title from blog as b where b.rank<=6 AND b.rank!=0 AND b.disabled != 1 order by b.rank asc'
     }
 
     DBHelper.execQuery(options, function(results) {
@@ -296,6 +296,7 @@ router.get('/timeline', function(req, res, next) {
         sql:'SELECT distinct DATE_FORMAT(b.create_time,"%Y-%m") AS time,'+
             'GROUP_CONCAT(\'{"id":\',CAST(b.id AS CHAR),\',"title":"\',b.title,\'","time":"\',DATE_FORMAT(b.create_time,"%Y-%m-%d"),\'"}\') AS data '+
             'FROM blog AS b '+
+            'WHERE b.disabled != 1 '+
             'GROUP BY time '+
             'ORDER BY time DESC'
     }
