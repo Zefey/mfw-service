@@ -298,7 +298,7 @@ router.get('/timeline', function(req, res, next) {
             'FROM blog AS b '+
             'WHERE b.disabled != 1 '+
             'GROUP BY time '+
-            'ORDER BY time DESC'
+            'ORDER BY time ASC'
     }
 
     DBHelper.execQuery(options, function(results) {
