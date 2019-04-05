@@ -15,8 +15,8 @@ router.get('/', function(req, res, next) {
     var offset = parseInt(req.param('offset') || 8);
     var start = parseInt(req.param('start') || (pageNum-1)*offset);
     var keyWord = req.param('keyWord')?'%'+req.param('keyWord')+'%':'%%';
-    var categoryId = req.param('categoryId')?'%'+req.param('categoryId')+'%':'%%';
-    var labelId = req.param('labelId')?'%'+req.param('labelId')+'%':'%%';
+    var categoryId = req.param('categoryId')?req.param('categoryId'):'%%';
+    var labelId = req.param('labelId')?req.param('labelId'):'%%';
 
     var options = {
         sql:'SELECT b.id,b.title,b.content,DATE_FORMAT(b.create_time,"%Y-%m-%d") AS time,c.name AS category,c.id AS categoryId,'+
