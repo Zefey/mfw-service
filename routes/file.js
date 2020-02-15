@@ -62,14 +62,6 @@ router.post('/upload',multipartMiddleware,function(req, res, next) {
         data:resData
     });
 
-
-    // var author = sess.user?sess.user.username:'';
-    // if(!author){
-    //   return res.send({
-    //         status: 0,
-    //         info: '未登录'
-    //     });
-    // }
 });
 
 

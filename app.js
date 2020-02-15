@@ -9,7 +9,7 @@ var session = require('express-session');
 var index = require('./routes/index');
 var user = require('./routes/user');
 var file = require('./routes/file');
-var blog = require('./routes/blog');
+var mfw = require('./routes/mfw');
 
 var app = express();
 
@@ -48,7 +48,7 @@ app.use(session({
 
 app.use('/', index);
 app.use('/user', user);
-app.use('/blog', blog);
+app.use('/mfw', mfw);
 app.use('/file', file);
 
 

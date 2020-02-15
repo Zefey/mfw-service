@@ -1,7 +1,7 @@
 {
     "dbhost": "localhost",
     "port": "3306",
-    "db": "blog",
+    "db": "mfw",
     "user": "root",
     "password": "liuzefeng",
     "charset": "utf8",
