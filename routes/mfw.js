@@ -5,9 +5,18 @@ var DateUtil = require('../util/dateUtil');
 
 
 router.get('/travelList', function(req, res, next) {
-    
+    var location = req.param('location') || '';
+
+    if(!location){
+        return res.send({
+            status: 0,
+            info: '缺少参数'
+        });
+    }
+
     var options = {
-        sql:'select * from travel'
+        sql:'select * from travel where location=?',
+        args:[location]
     }
 
     DBHelper.execQuery(options, function(results) {
@@ -19,19 +28,19 @@ router.get('/travelList', function(req, res, next) {
 
 });
 
-router.get('/addTravel', function(req, res, next) {
+router.post('/addTravel', function(req, res, next) {
     var imgs = req.param('imgs') || '';
-    var title = req.param('title') || '';
-    var desc = req.param('desc') || '';
+    var content = req.param('content') || '';
     var openid = req.param('openid') || '';
     var userAvatar = req.param('userAvatar') || '';
     var userName = req.param('userName') || '';
     var location = req.param('location') || '';
-    var like = 0;
+    var time = req.param('time') || new Date();
+    var likes = 0;
     var create_time = new Date();
     var update_time = new Date();
 
-    if(!imgs || !title || !desc || !openid){
+    if(!imgs || !content || !openid){
         return res.send({
             status: 0,
             info: '缺少参数'
@@ -39,8 +48,8 @@ router.get('/addTravel', function(req, res, next) {
     }
     
     var options = {
-        sql:'insert into travel(imgs,title,desc,openid,user_avatar,user_name,location,like,create_time,update_time) values(?,?,?,?,?,?,?,?,?,?)',
-        args:[imgs,title,desc,openid,userAvatar,userName,location,like,create_time,update_time]
+        sql:'insert into travel(time,imgs,content,openid,user_avatar,user_name,location,likes,create_time,update_time) values(?,?,?,?,?,?,?,?,?,?)',
+        args:[time,imgs,content,openid,userAvatar,userName,location,likes,create_time,update_time]
     }
 
     DBHelper.execQuery(options, function(results) {
@@ -65,20 +74,24 @@ router.get('/replyList', function(req, res, next) {
     }
 
     var options = {
-        sql:'select * from travel where travel_id = ?',
+        sql:'select * from reply where travel_id = ? order by create_time desc',
         args:[travelId]
     }
 
     DBHelper.execQuery(options, function(results) {
+        let result = [];
+        if(results && results.length>0){
+            result = results;
+        }
         return res.send({
             status: 1,
-            data: results
+            data: result
         });
 
     });
 });
 
-router.get('/addReply', function(req, res, next) {
+router.post('/addReply', function(req, res, next) {
     var travelId = req.param('travelId') || '';
     var content = req.param('content') || '';
     var openid = req.param('openid') || '';
@@ -95,8 +108,8 @@ router.get('/addReply', function(req, res, next) {
     }
 
     var options = {
-        sql:'insert into reply(openid,user_avatar,user_name,travel_id,create_time,update_time) values(?,?,?,?,?,?)',
-        args:[openid,userAvatar,userName,travelId,create_time,update_time]
+        sql:'insert into reply(content,openid,user_avatar,user_name,travel_id,create_time,update_time) values(?,?,?,?,?,?,?)',
+        args:[content,openid,userAvatar,userName,travelId,create_time,update_time]
     }
 
     DBHelper.execQuery(options, function(results) {
@@ -110,7 +123,8 @@ router.get('/addReply', function(req, res, next) {
 
 router.get('/bannerList', function(req, res, next) {
     var type = req.param('type') || '';
-
+    var location = req.param('location') || '';
+    
     if(!type){
         return res.send({
             status: 0,
@@ -118,9 +132,13 @@ router.get('/bannerList', function(req, res, next) {
         });
     }
 
+    if(location){
+        location = `%${location}%`;
+    }
+
     var options = {
-        sql:'select * from banner where type = ?',
-        args:[type]
+        sql:'select * from banner where type = ? AND (location like ? or location is null)',
+        args:[type,location]
     }
 
     DBHelper.execQuery(options, function(results) {
@@ -132,5 +150,43 @@ router.get('/bannerList', function(req, res, next) {
     });
 });
 
+router.get('/locationList', function(req, res, next) {
+
+    var options = {
+        sql:'select * from location'
+    }
+
+    DBHelper.execQuery(options, function(results) {
+        return res.send({
+            status: 1,
+            data: results
+        });
+
+    });
+});
+
+router.get('/quickKnowList', function(req, res, next) {
+    var location = req.param('location') || '';
+
+    if(!location){
+        return res.send({
+            status: 0,
+            info: '缺少参数'
+        });
+    }
+
+    var options = {
+        sql:'select * from quickKnow where location=?',
+        args:[location]
+    }
+
+    DBHelper.execQuery(options, function(results) {
+        return res.send({
+            status: 1,
+            data: results
+        });
+    });
+
+});
 
 module.exports = router;

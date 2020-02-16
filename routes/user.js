@@ -18,13 +18,13 @@ router.post('/login', function(req, res, next) {
 
 
     var count = {
-        sql: 'update user set user_name = ?,user_avatar = ?,update_time = ? where openid =?',
-        args: [userName,userAvatar,update_time,openid]
+        sql: 'select count(*) as count from user where openid=?',
+        args: [openid]
     }
 
     var insert = {
-        sql: 'insert into user(openid,user_name,user_avatar,create_time,update_time) values(?,?,?,?,?)',
-        args: [openid,userName,userAvatar,create_time,update_time]
+        sql: 'insert into user(openid,user_name,user_avatar,create_time,update_time,fans,focus,custom) values(?,?,?,?,?,?,?,?)',
+        args: [openid,userName,userAvatar,create_time,update_time,0,0,0]
     }
 
     var update = {
@@ -32,19 +32,34 @@ router.post('/login', function(req, res, next) {
         args: [userName,userAvatar,update_time,openid]
     }
 
+    var select = {
+        sql: 'select * from user where openid =?',
+        args: [openid]
+    }
+
     DBHelper.execQuery(count, function(results) {
-        if(results.length){
-            DBHelper.execQuery(update);
-            res.send({
-                status: 1,
-                info: '登录成功'
+        if(results.length>0 && results[0].count > 0){
+            DBHelper.execQuery(update,function(){
+                DBHelper.execQuery(select, function(results){
+                    res.send({
+                        status: 1,
+                        info: '登录成功',
+                        data:results
+                    });
+                });
             });
+            
         }else{
-            DBHelper.execQuery(insert);
-            res.send({
-                status: 1,
-                info: '登录成功'
+            DBHelper.execQuery(insert,function(){
+                DBHelper.execQuery(select, function(results){
+                    res.send({
+                        status: 1,
+                        info: '登录成功',
+                        data:results
+                    });
+                });
             });
+            
         }
     });
 
