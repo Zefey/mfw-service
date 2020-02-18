@@ -66,4 +66,59 @@ router.post('/login', function(req, res, next) {
 });
 
 
+router.post('/adminLogin', function(req, res, next) {
+    var phone = req.param('phone');
+    var password = req.param('password');
+
+    if(!phone && !password){
+        res.send({
+            status: 0,
+            info: '缺少参数'
+        });
+    }
+
+    var options = {
+        sql: 'select * from user where phone = ? and rule = "admin"',
+        args: phone
+    }
+
+    DBHelper.execQuery(options, function(results) {
+        if(results && results.length > 0){
+            if (password === results[0].password) {
+                req.session.user = {
+                    phone: phone
+                };
+                return res.send({
+                    status: 1,
+                    info: '登录成功'
+                });
+            } else {
+                return res.send({
+                    status: 0,
+                    info: '登录失败'
+                });
+            }
+        }else{
+            return res.send({
+                status: 0,
+                info: '登录失败'
+            });
+        }
+
+    });
+
+});
+
+router.post('/adminLogout', function(req, res, next) {
+    var sess = req.session;
+    sess.destroy();
+
+    return res.send({
+        status: 1,
+        info: '登出成功'
+    });
+
+});
+
+
 module.exports = router;
