@@ -10,6 +10,7 @@ var index = require('./routes/index');
 var user = require('./routes/user');
 var file = require('./routes/file');
 var mfw = require('./routes/mfw');
+var admin = require('./routes/admin');
 
 var app = express();
 
@@ -49,6 +50,7 @@ app.use(session({
 app.use('/', index);
 app.use('/user', user);
 app.use('/mfw', mfw);
+app.use('/admin', admin);
 app.use('/file', file);
 
 
