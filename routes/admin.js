@@ -290,7 +290,7 @@ router.post('/handleRoute', function(req, res, next) {
     var id = req.param('id') || '';
     var title = req.param('title') || '';
     var titleImg = req.param('titleImg') || '';
-    var content_Img = req.param('content_Img') || '';
+    var contentImg = req.param('contentImg') || '';
     var tags = req.param('tags') || '';
     var location = req.param('location') || '';
     var location_title = req.param('location_title') || '';
@@ -305,14 +305,14 @@ router.post('/handleRoute', function(req, res, next) {
     if(id){
         console.log('编辑 handleRoute');
         options = {
-            sql:'update route set title=?,titleImg=?,content_Img=?,tags=?,location=?,location_title=?,route=?,location_img=?,content=?,update_time=? where id=?',
-            args:[location,img,big_title,title,content,update_time,id]
+            sql:'update route set title=?,titleImg=?,contentImg=?,tags=?,location=?,location_title=?,route=?,location_img=?,content=?,update_time=? where id=?',
+            args:[title,titleImg,contentImg,tags,location,location_title,route,location_img,content,update_time,id]
         }
     }else{
         console.log('新增 handleRoute');
         options = {
-            sql:'insert into route(title,titleImg,content_Img,tags,location,location_title,route,location_img,content,create_time,update_time) values(?,?,?,?,?,?,?,?,?,?,?)',
-            args:[title,titleImg,content_Img,tags,location,location_title,route,location_img,content,create_time,update_time]
+            sql:'insert into route(title,titleImg,contentImg,tags,location,location_title,route,location_img,content,create_time,update_time) values(?,?,?,?,?,?,?,?,?,?,?)',
+            args:[title,titleImg,contentImg,tags,location,location_title,route,location_img,content,create_time,update_time]
         }
     }
     
