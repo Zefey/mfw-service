@@ -101,7 +101,7 @@ router.get('/routeList', function(req, res, next) {
 
 //新增、编辑
 
-router.post('/handelTravel', function(req, res, next) {
+router.post('/handleTravel', function(req, res, next) {
     var id = req.param('id') || '';
     var imgs = req.param('imgs') || '';
     var content = req.param('content') || '';
@@ -117,13 +117,13 @@ router.post('/handelTravel', function(req, res, next) {
     var options = {}
 
     if(id){
-        console.log('编辑 handelTravel');
+        console.log('编辑 handleTravel');
         options = {
             sql:'update travel set time=?,imgs=?,content=?,openid=?,user_avatar=?,user_name=?,location=?,likes=?,update_time=? where id=?',
             args:[time,imgs,content,openid,user_avatar,user_name,location,likes,update_time,id]
         }
     }else{
-        console.log('新增 handelTravel');
+        console.log('新增 handleTravel');
         options = {
             sql:'insert into travel(time,imgs,content,openid,user_avatar,user_name,location,likes,create_time,update_time) values(?,?,?,?,?,?,?,?,?,?)',
             args:[time,imgs,content,openid,user_avatar,user_name,location,0,create_time,update_time]
@@ -131,7 +131,7 @@ router.post('/handelTravel', function(req, res, next) {
     }
     
     DBHelper.execQuery(options, function(results) {
-        console.log('handelTravel results',results);
+        console.log('handleTravel results',results);
         return res.send({
             status: 1,
             info:'修改成功'
@@ -140,7 +140,7 @@ router.post('/handelTravel', function(req, res, next) {
 
 });
 
-router.post('/handelReply', function(req, res, next) {
+router.post('/handleReply', function(req, res, next) {
     var id = req.param('id') || '';
     var user_avatar = req.param('user_avatar') || '';
     var user_name = req.param('user_name') || '';
@@ -153,13 +153,13 @@ router.post('/handelReply', function(req, res, next) {
     var options = {}
 
     if(id){
-        console.log('编辑 handelReply');
+        console.log('编辑 handleReply');
         options = {
             sql:'update reply set user_avatar=?,user_name=?,openid=?,travel_id=?,content=?,update_time=? where id=?',
             args:[user_avatar,user_name,openid,travel_id,content,update_time,id]
         }
     }else{
-        console.log('新增 handelReply');
+        console.log('新增 handleReply');
         options = {
             sql:'insert into reply(user_avatar,user_name,openid,travel_id,content,create_time,update_time) values(?,?,?,?,?,?,?)',
             args:[user_avatar,user_name,openid,travel_id,content,create_time,update_time]
@@ -167,7 +167,7 @@ router.post('/handelReply', function(req, res, next) {
     }
     
     DBHelper.execQuery(options, function(results) {
-        console.log('handelReply results',results);
+        console.log('handleReply results',results);
         return res.send({
             status: 1,
             info:'修改成功'
@@ -177,7 +177,7 @@ router.post('/handelReply', function(req, res, next) {
 });
 
 
-router.post('/handelBanner', function(req, res, next) {
+router.post('/handleBanner', function(req, res, next) {
     var id = req.param('id') || '';
     var location = req.param('location') || '';
     var type = req.param('type') || '';
@@ -190,13 +190,13 @@ router.post('/handelBanner', function(req, res, next) {
     var options = {}
 
     if(id){
-        console.log('编辑 handelBanner');
+        console.log('编辑 handleBanner');
         options = {
             sql:'update banner set location=?,type=?,img=?,title=?,url=?,update_time=? where id=?',
             args:[location,type,img,title,url,update_time,id]
         }
     }else{
-        console.log('新增 handelBanner');
+        console.log('新增 handleBanner');
         options = {
             sql:'insert into banner(location,type,img,title,url,create_time,update_time) values(?,?,?,?,?,?,?)',
             args:[location,type,img,title,url,create_time,update_time]
@@ -204,7 +204,7 @@ router.post('/handelBanner', function(req, res, next) {
     }
     
     DBHelper.execQuery(options, function(results) {
-        console.log('handelBanner results',results);
+        console.log('handleBanner results',results);
         return res.send({
             status: 1,
             info:'修改成功'
@@ -213,7 +213,7 @@ router.post('/handelBanner', function(req, res, next) {
 
 });
 
-router.post('/handelLocation', function(req, res, next) {
+router.post('/handleLocation', function(req, res, next) {
     var id = req.param('id') || '';
     var name = req.param('name') || '';
     var type = req.param('type') || '';
@@ -226,13 +226,13 @@ router.post('/handelLocation', function(req, res, next) {
     var options = {}
 
     if(id){
-        console.log('编辑 handelLocation');
+        console.log('编辑 handleLocation');
         options = {
             sql:'update location set name=?,type=?,pre_name=?,img=?,hot=?,update_time=? where id=?',
             args:[name,type,pre_name,img,hot,update_time,id]
         }
     }else{
-        console.log('新增 handelLocation');
+        console.log('新增 handleLocation');
         options = {
             sql:'insert into location(name,type,pre_name,img,hot,create_time,update_time) values(?,?,?,?,?,?,?)',
             args:[name,type,pre_name,img,hot,create_time,update_time]
@@ -240,7 +240,7 @@ router.post('/handelLocation', function(req, res, next) {
     }
     
     DBHelper.execQuery(options, function(results) {
-        console.log('handelLocation results',results);
+        console.log('handleLocation results',results);
         return res.send({
             status: 1,
             info:'修改成功'
@@ -249,7 +249,7 @@ router.post('/handelLocation', function(req, res, next) {
 
 });
 
-router.post('/handelQuickKnow', function(req, res, next) {
+router.post('/handleQuickKnow', function(req, res, next) {
     var id = req.param('id') || '';
     var location = req.param('location') || '';
     var img = req.param('img') || '';
@@ -262,13 +262,13 @@ router.post('/handelQuickKnow', function(req, res, next) {
     var options = {}
 
     if(id){
-        console.log('编辑 handelQuickKnow');
+        console.log('编辑 handleQuickKnow');
         options = {
             sql:'update quickKnow set location=?,img=?,big_title=?,title=?,content=?,update_time=? where id=?',
             args:[location,img,big_title,title,content,update_time,id]
         }
     }else{
-        console.log('新增 handelQuickKnow');
+        console.log('新增 handleQuickKnow');
         options = {
             sql:'insert into quickKnow(location,img,big_title,title,content,create_time,update_time) values(?,?,?,?,?,?,?)',
             args:[location,img,big_title,title,content,create_time,update_time]
@@ -276,7 +276,7 @@ router.post('/handelQuickKnow', function(req, res, next) {
     }
     
     DBHelper.execQuery(options, function(results) {
-        console.log('handelQuickKnow results',results);
+        console.log('handleQuickKnow results',results);
         return res.send({
             status: 1,
             info:'修改成功'
@@ -286,7 +286,7 @@ router.post('/handelQuickKnow', function(req, res, next) {
 });
 
 
-router.post('/handelRoute', function(req, res, next) {
+router.post('/handleRoute', function(req, res, next) {
     var id = req.param('id') || '';
     var title = req.param('title') || '';
     var titleImg = req.param('titleImg') || '';
@@ -303,13 +303,13 @@ router.post('/handelRoute', function(req, res, next) {
     var options = {}
 
     if(id){
-        console.log('编辑 handelRoute');
+        console.log('编辑 handleRoute');
         options = {
             sql:'update route set title=?,titleImg=?,content_Img=?,tags=?,location=?,location_title=?,route=?,location_img=?,content=?,update_time=? where id=?',
             args:[location,img,big_title,title,content,update_time,id]
         }
     }else{
-        console.log('新增 handelRoute');
+        console.log('新增 handleRoute');
         options = {
             sql:'insert into route(title,titleImg,content_Img,tags,location,location_title,route,location_img,content,create_time,update_time) values(?,?,?,?,?,?,?,?,?,?,?)',
             args:[title,titleImg,content_Img,tags,location,location_title,route,location_img,content,create_time,update_time]
@@ -317,7 +317,7 @@ router.post('/handelRoute', function(req, res, next) {
     }
     
     DBHelper.execQuery(options, function(results) {
-        console.log('handelRoute results',results);
+        console.log('handleRoute results',results);
         return res.send({
             status: 1,
             info:'修改成功'
