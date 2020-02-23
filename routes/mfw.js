@@ -213,4 +213,28 @@ router.get('/routeList', function(req, res, next) {
 
 });
 
+router.get('/scenicList', function(req, res, next) {
+    var location = req.param('location') || '';
+
+    if(!location){
+        return res.send({
+            status: 0,
+            info: '缺少参数'
+        });
+    }
+
+    var options = {
+        sql:'select * from scenic where location=?',
+        args:[location]
+    }
+
+    DBHelper.execQuery(options, function(results) {
+        return res.send({
+            status: 1,
+            data: results
+        });
+    });
+
+});
+
 module.exports = router;

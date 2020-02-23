@@ -99,6 +99,21 @@ router.get('/routeList', function(req, res, next) {
 
 });
 
+router.get('/scenicList', function(req, res, next) {
+
+    var options = {
+        sql:'select * from scenic'
+    }
+
+    DBHelper.execQuery(options, function(results) {
+        return res.send({
+            status: 1,
+            data: results
+        });
+    });
+
+});
+
 //新增、编辑
 
 router.post('/handleTravel', function(req, res, next) {
@@ -326,6 +341,45 @@ router.post('/handleRoute', function(req, res, next) {
 
 });
 
+router.post('/handleScenic', function(req, res, next) {
+    var id = req.param('id') || '';
+    var img = req.param('img') || '';
+    var location = req.param('location') || '';
+    var name = req.param('name') || '';
+    var tags = req.param('tags') || '';
+    var latitude = req.param('latitude') || '';
+    var longitude = req.param('longitude') || '';
+    var openTime = req.param('openTime') || '';
+    var content = req.param('content') || '';
+    var create_time = new Date();
+    var update_time = new Date();
+
+    var options = {}
+
+    if(id){
+        console.log('编辑 handleScenic');
+        options = {
+            sql:'update scenic set img=?,location=?,name=?,tags=?,latitude=?,longitude=?,openTime=?,content=?,update_time=? where id=?',
+            args:[img,location,name,tags,latitude,longitude,openTime,content,update_time,id]
+        }
+    }else{
+        console.log('新增 handleScenic');
+        options = {
+            sql:'insert into scenic(img,location,name,tags,latitude,longitude,openTime,content,create_time,update_time) values(?,?,?,?,?,?,?,?,?,?)',
+            args:[img,location,name,tags,latitude,longitude,openTime,content,create_time,update_time]
+        }
+    }
+    
+    DBHelper.execQuery(options, function(results) {
+        console.log('handleScenic results',results);
+        return res.send({
+            status: 1,
+            info:'修改成功'
+        });
+    });
+
+});
+
 //删除
 
 router.get('/travelDelete', function(req, res, next) {
@@ -477,5 +531,28 @@ router.get('/routeDelete', function(req, res, next) {
 
 });
 
+router.get('/scenicDelete', function(req, res, next) {
+    var id = req.param('id') || '';
+
+    if(!id){
+        return res.send({
+            status: 0,
+            info: '缺少参数'
+        });
+    }
+
+    var options = {
+        sql:'delete from scenic where id = ?',
+        args:[id]
+    }
+
+    DBHelper.execQuery(options, function(results) {
+        return res.send({
+            status: 1,
+            data: results
+        });
+    });
+
+});
 
 module.exports = router;
